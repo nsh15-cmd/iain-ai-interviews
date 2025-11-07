@@ -79,8 +79,23 @@ export async function signIn(params: SignInParams) {
       };
 
     await setSessionCookie(idToken);
-  } catch (error: any) {
-    console.log("");
+
+    // On success, return an explicit success object so the client can react
+    return {
+      success: true,
+      message: "Signed in successfully.",
+    };
+  } catch (err: unknown) {
+    const error = err as { code?: string; message?: string; [key: string]: unknown };
+    console.error("Error signing in:", error?.code ?? "no-code", error?.message ?? error);
+
+    // In development return the underlying error message to help debugging
+    if (process.env.NODE_ENV !== "production") {
+      return {
+        success: false,
+        message: `Failed to log into account. ${error?.message ?? "Unknown error"}`,
+      };
+    }
 
     return {
       success: false,
